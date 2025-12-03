@@ -1,6 +1,7 @@
 package com.tecsup.productmanager.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -15,6 +16,7 @@ import com.tecsup.productmanager.ui.screens.auth.RegisterScreen
 import com.tecsup.productmanager.ui.screens.product.AddProductScreen
 import com.tecsup.productmanager.ui.screens.product.EditProductScreen
 import com.tecsup.productmanager.ui.screens.product.ProductListScreen
+import com.tecsup.productmanager.viewmodel.AuthState
 import com.tecsup.productmanager.viewmodel.AuthViewModel
 import com.tecsup.productmanager.viewmodel.ProductViewModel
 
@@ -24,7 +26,19 @@ fun AppNavigation() {
     val authViewModel: AuthViewModel = viewModel()
     val productViewModel: ProductViewModel = viewModel()
 
+    val authState by authViewModel.authState.collectAsState()
     val products by productViewModel.products.collectAsState()
+
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthState.Success -> {
+                navController.navigate("productList") {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+            else -> {}
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -34,9 +48,6 @@ fun AppNavigation() {
             LoginScreen(
                 onLoginClick = { email, password ->
                     authViewModel.login(email, password)
-                    navController.navigate("productList") {
-                        popUpTo("login") { inclusive = true }
-                    }
                 },
                 onRegisterClick = {
                     navController.navigate("register")
@@ -48,9 +59,6 @@ fun AppNavigation() {
             RegisterScreen(
                 onRegisterClick = { email, password ->
                     authViewModel.register(email, password)
-                    navController.navigate("productList") {
-                        popUpTo("register") { inclusive = true }
-                    }
                 },
                 onLoginClick = {
                     navController.popBackStack()
