@@ -1,4 +1,6 @@
 package com.tecsup.productmanager.data.model
 
-class User {
-}
+data class User(
+    val uid: String = "",
+    val email: String = ""
+)
