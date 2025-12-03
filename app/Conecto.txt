@@ -1,0 +1,88 @@
+CONCEPTOS - ProductManager Backend
+
+ 1. MVVM (Model-View-ViewModel)
+Patrón de arquitectura que separa la lógica de negocio de la UI.
+
+En nuestro proyecto:
+Model: Product.kt y User.kt - representan los datos
+ViewModel: AuthViewModel.kt y ProductViewModel.kt - manejan la lógica y estados
+View: Pantallas Compose que observan los StateFlow del ViewModel
+
+Ventajas: Código más organizado, fácil de mantener y probar. La UI reacciona automáticamente a cambios de datos.
+
+2. Firebase Authentication
+Servicio de Firebase para autenticación de usuarios.
+
+Implementación:
+AuthRepository usa FirebaseAuth para login y registro
+Métodos: signInWithEmailAndPassword() y createUserWithEmailAndPassword()
+Manejo de sesión: getCurrentUser() verifica si hay usuario logueado
+
+Seguridad: Firebase maneja el cifrado de contraseñas y tokens de sesión automáticamente.
+
+3. Firebase Firestore
+Base de datos NoSQL en tiempo real.
+
+Estructura:
+Colección "products" contiene documentos de productos
+Cada documento tiene un ID único generado automáticamente
+Usamos listeners (addSnapshotListener) para actualizaciones en tiempo real
+
+Operaciones CRUD:
+Create: productsCollection.document().set()
+Read: getProducts() con Flow y listeners
+Update: document(id).set() con datos actualizados
+Delete: document(id).delete()
+
+4. Kotlin Flow y StateFlow
+Flujos de datos reactivos que emiten valores en el tiempo.
+
+Flow: Usado en ProductRepository.getProducts() para escuchar cambios de Firestore en tiempo real.
+
+StateFlow: Usado en ViewModels para exponer estados a la UI:
+_authState (privado) se modifica en el ViewModel
+authState (público) es observado por la UI
+La UI se actualiza automáticamente cuando cambia el estado
+
+5. Coroutines
+Sistema de concurrencia de Kotlin para operaciones asíncronas.
+
+En el proyecto:
+viewModelScope.launch {} ejecuta operaciones en segundo plano
+suspend functions (login, addProduct, etc.) permiten pausar y reanumir ejecución
+.await() espera resultados de Firebase sin bloquear el hilo principal
+
+Beneficio: La app no se congela mientras espera respuestas de Firebase.
+
+6. Repository Pattern
+Capa que abstrae el acceso a datos.
+
+Implementación:
+AuthRepository: centraliza operaciones de autenticación
+ProductRepository: centraliza operaciones CRUD de productos
+Los ViewModels no acceden directamente a Firebase, usan los repositorios
+
+Ventaja: Si cambiamos Firebase por otra base de datos, solo modificamos los repositorios.
+
+7. Sealed Classes para Estados
+Clases selladas que representan estados posibles de forma segura.
+
+AuthState y ProductState:
+Idle: Estado inicial
+Loading: Operación en progreso
+Success: Operación exitosa
+Error: Operación falló con mensaje
+
+Beneficio: El compilador garantiza que manejamos todos los casos posibles en la UI.
+
+8. Validaciones
+ValidationUtils centraliza reglas de negocio.
+
+Validaciones implementadas:
+Email: formato válido usando Patterns.EMAIL_ADDRESS
+Contraseña: mínimo 6 caracteres
+Precio: número positivo mayor a 0
+Stock: número entero no negativo
+Nombre y categoría: mínimo 3 caracteres
+
+Separación: La lógica de validación está separada de la UI y ViewModels.
